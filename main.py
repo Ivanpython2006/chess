@@ -28,3 +28,4 @@ while True:
         new_r = transformer_r[new_r]
         new_c = transformer_c[new_c]
         game.move(r, c, new_r, new_c)
+        game.change_pawn()

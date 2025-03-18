@@ -238,6 +238,34 @@ class Table:
                             if cell2.color == cell.color:
                                 print('Нельзя бить свою фигуру.')
                                 return False
+                    # Взятие на проходе
+                    if type(cell) == Pawn and vrag is None:
+                        c = cell.get_coords()
+                        if cell.color == 'W':
+                            for a in self.table:
+                                if a.get_coords() == (c[0], c[1]-1):
+                                    if type(a) == Pawn and a.color == 'B' and a.first_step == 1:
+                                        self.table.remove(a)
+                                        cell.change_coords((c[0]-1, c[1]-1))
+                                        return True
+                                if a.get_coords() == (c[0], c[1]+1):
+                                    if type(a) == Pawn and a.color == 'B' and a.first_step == 1:
+                                        self.table.remove(a)
+                                        cell.change_coords((c[0]-1, c[1]+1))
+                                        return True
+                        if cell.color == 'B':
+                            for a in self.table:
+                                if a.get_coords() == (c[0], c[1]-1):
+                                    if type(a) == Pawn and a.color == 'W' and a.first_step == 1:
+                                        self.table.remove(a)
+                                        cell.change_coords((c[0]+1, c[1]-1))
+                                        return True
+                                if a.get_coords() == (c[0], c[1]+1):
+                                    if type(a) == Pawn and a.color == 'W' and a.first_step == 1:
+                                        self.table.remove(a)
+                                        cell.change_coords((c[0]+1, c[1]+1))
+                                        return True
+                    # Конец взятия на проходе
                     is_pob = False
                     if vrag is not None:
                         if not cell.move(new_r, new_c, True):
@@ -263,6 +291,41 @@ class Table:
         print('Координаты фигуры введены неверно.')
         return False
     
+    def change_pawn(self):
+        for cell in self.table:
+            if type(cell) == Pawn:
+                coords = cell.get_coords()
+                if cell.color == 'W' and coords[0] == 0:
+                    ch = input('Введите фигуру, на которую хотите заменить пешку\n'
+                               '(Q - королева, B - слон, N - конь, R - ладья):')
+                    if ch == 'Q':
+                        t = Queen(*coords, 'W')
+                    elif ch == 'B':
+                        t = Bishop(*coords, 'W')
+                    elif ch == 'N':
+                        t = Knight(*coords, 'W')
+                    elif ch == 'R':
+                        t = Rook(*coords, 'W')
+                    else:
+                        return False
+                    self.table.remove(cell)
+                    self.table.add(t)
+                elif cell.color == 'B' and coords[0] == 7:
+                    ch = input('Введите фигуру, на которую хотите заменить пешку\n'
+                               '(q - королева, b - слон, n - конь, r - ладья):')
+                    if ch == 'q':
+                        t = Queen(*coords, 'B')
+                    elif ch == 'b':
+                        t = Bishop(*coords, 'B')
+                    elif ch == 'n':
+                        t = Knight(*coords, 'B')
+                    elif ch == 'r':
+                        t = Rook(*coords, 'B')
+                    else:
+                        return False
+                    self.table.remove(cell)
+                    self.table.add(t)
+
     def print_pos(self, r, c):
         res = self.show_pos(r, c)
         if res is None:
@@ -288,9 +351,23 @@ class Table:
                             (r, c+1), (r, c), (r, c-1),
                             (r-1, c+1), (r-1, c), (r-1, c-1)]
                 if type(cell) == Queen:
-                    return []
+                    res = [(r, i) for i in range(8)] + [(i, c) for i in range(8)]
+                    for r in range(8):
+                        for c in range(8):
+                            if r == cell.r and c == cell.c:
+                                continue
+                            if abs(r-cell.r) == abs(c - cell.c):
+                                res.append((r, c))
+                    return res
                 if type(cell) == Bishop:
-                    return []
+                    res = []
+                    for r in range(8):
+                        for c in range(8):
+                            if r == cell.r and c == cell.c:
+                                continue
+                            if abs(r-cell.r) == abs(c - cell.c):
+                                res.append((r, c))
+                    return res
                 if type(cell) == Knight:
                     r, c = cell.get_coords()
                     return [(r+2, c+1), (r+2, c-1), (r+1, c+2), (r+1, c-2),
@@ -300,14 +377,14 @@ class Table:
                     return [(r, i) for i in range(8)] + [(i, c) for i in range(8)]
                 if type(cell) == Pawn:
                     if cell.first_step == 0:
-                        if cell.color == 'W':
+                        if cell.color == 'B':
                             c = cell.get_coords()
                             return [(c[0]+1, c[1]), (c[0]+2, c[1])]
                         else:
                             c = cell.get_coords()
                             return [(c[0]-1, c[1]), (c[0]-2, c[1])]
                     else:
-                        if cell.color == 'W':
+                        if cell.color == 'B':
                             c = cell.get_coords()
                             return [(c[0]+1, c[1])]
                         else:
